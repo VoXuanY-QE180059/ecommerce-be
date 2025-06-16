@@ -12,10 +12,10 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
 
-  // Bật CORS cho frontend tại port 5173
+  // Bật CORS cho frontend
   app.enableCors({
-    origin: 'https://ecommerce-fe-swart.vercel.app',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    origin: ['https://ecommerce-fe-swart.vercel.app', 'https://product-ui-6x9o.onrender.com'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
