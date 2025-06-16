@@ -9,6 +9,7 @@ import {
   BadRequestException,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -17,18 +18,21 @@ import * as fs from 'fs';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { AuthGuard } from 'src/guard/auth.guard';
 
 @Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post('create')
+  @UseGuards(AuthGuard)
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
         destination: './uploads',
         filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           const ext = extname(file.originalname);
           cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
         },
@@ -36,17 +40,19 @@ export class ProductController {
       fileFilter: (req, file, cb) => {
         const allowedTypes = ['image/png', 'image/jpeg', 'image/gif'];
         if (!allowedTypes.includes(file.mimetype)) {
-          return cb(new BadRequestException('Chỉ được phép tải lên file PNG, JPEG hoặc GIF'), false);
+          return cb(
+            new BadRequestException(
+              'Chỉ được phép tải lên file PNG, JPEG hoặc GIF',
+            ),
+            false,
+          );
         }
         cb(null, true);
       },
       limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
     }),
   )
-  async create(
-    @Body() body: any,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
+  async create(@Body() body: any, @UploadedFile() file: Express.Multer.File) {
     let imagePath: string | undefined;
     try {
       const createProductDto: CreateProductDto = {
@@ -102,12 +108,14 @@ export class ProductController {
   }
 
   @Post('update/:id')
+  @UseGuards(AuthGuard)
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
         destination: './uploads',
         filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           const ext = extname(file.originalname);
           cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
         },
@@ -115,7 +123,12 @@ export class ProductController {
       fileFilter: (req, file, cb) => {
         const allowedTypes = ['image/png', 'image/jpeg', 'image/gif'];
         if (!allowedTypes.includes(file.mimetype)) {
-          return cb(new BadRequestException('Chỉ được phép tải lên file PNG, JPEG hoặc GIF'), false);
+          return cb(
+            new BadRequestException(
+              'Chỉ được phép tải lên file PNG, JPEG hoặc GIF',
+            ),
+            false,
+          );
         }
         cb(null, true);
       },
@@ -213,6 +226,7 @@ export class ProductController {
   }
 
   @Get('detail/:id')
+  @UseGuards(AuthGuard)
   async findOne(@Param('id') id: string) {
     try {
       const data = await this.productService.findOne(+id);
