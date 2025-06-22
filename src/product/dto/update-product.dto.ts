@@ -1,25 +1,25 @@
-import { IsNotEmpty, IsString, IsNumber, IsOptional, IsBoolean, Min, MaxLength } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsBoolean, Min, MaxLength } from 'class-validator';
 
 export class UpdateProductDto {
-  @IsNotEmpty({ message: 'Product name is required' })
+  @IsOptional()
   @IsString({ message: 'Product name must be a string' })
   @MaxLength(50, { message: 'Product name cannot exceed 50 characters' })
-  name: string;
+  name?: string;
 
-  @IsNotEmpty({ message: 'Price is required' })
+  @IsOptional()
   @IsNumber({}, { message: 'Price must be a number' })
   @Min(0, { message: 'Price must be a positive number' })
-  price: number;
+  price?: number;
 
-  @IsNotEmpty({ message: 'Description is required' })
+  @IsOptional()
   @IsString({ message: 'Description must be a string' })
   @MaxLength(200, { message: 'Description cannot exceed 200 characters' })
-  description: string;
+  description?: string;
 
-  @IsNotEmpty({ message: 'Category is required' })
+  @IsOptional()
   @IsString({ message: 'Category must be a string' })
   @MaxLength(30, { message: 'Category cannot exceed 30 characters' })
-  category: string;
+  category?: string;
 
   @IsOptional()
   @IsNumber({}, { message: 'Stock must be a number' })
@@ -32,5 +32,5 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsString({ message: 'Image must be a string (URL)' })
-  image?: string; // URL của ảnh
+  image?: string;
 }

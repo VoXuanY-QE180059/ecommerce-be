@@ -1,8 +1,12 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 @Injectable()
 export class AuthGuard implements CanActivate {
-
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
@@ -17,8 +21,12 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('Invalid token format');
     }
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      request.user = decoded; 
+      const decoded = jwt.verify(token, process.env.JWT_SECRET) as any;
+      request.user = {
+        sub: decoded.sub, // User ID
+        email: decoded.email,
+        role: decoded.role,
+      };
       return true;
     } catch (error) {
       throw new UnauthorizedException('Invalid token');
