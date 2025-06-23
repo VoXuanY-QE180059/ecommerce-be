@@ -20,9 +20,15 @@ export class OrderService {
 
   async createOrder(userId: string, createOrderDto: CreateOrderDto): Promise<Order> {
     try {
-      // Kiểm tra tồn kho
+      // Kiểm tra sản phẩm và tồn kho
       for (const item of createOrderDto.products) {
-        const product = await this.productService.findOne(parseInt(item.productId));
+        // Chuyển đổi productId từ string sang number nếu cần
+        const productIdNumber = parseInt(item.productId, 10);
+        if (isNaN(productIdNumber)) {
+          throw new Error(`Invalid product ID: ${item.productId}`);
+        }
+
+        const product = await this.productService.findOne(productIdNumber);
         if (!product) {
           throw new Error(`Product with ID ${item.productId} not found`);
         }
@@ -31,18 +37,23 @@ export class OrderService {
         }
       }
 
-      // Giảm số lượng tồn kho
+      // Cập nhật tồn kho
       for (const item of createOrderDto.products) {
-        const product = await this.productService.findOne(parseInt(item.productId));
-        await this.productService.update(parseInt(item.productId), {
+        const productIdNumber = parseInt(item.productId, 10);
+        const product = await this.productService.findOne(productIdNumber);
+        await this.productService.update(productIdNumber, {
           stock: product.stock - item.quantity
         });
       }
 
-      // Tạo đơn hàng
+      // Tạo đơn hàng mới
       const newOrder = new this.orderModel({
         userId,
-        products: createOrderDto.products, // Changed from items to products
+        products: createOrderDto.products.map(item => ({
+          productId: item.productId, // Giữ nguyên dạng string
+          quantity: item.quantity,
+          price: item.price
+        })),
         totalAmount: createOrderDto.totalAmount,
         shippingAddress: createOrderDto.shippingAddress,
         phoneNumber: createOrderDto.phoneNumber,
@@ -57,7 +68,7 @@ export class OrderService {
         await this.cartService.clearCart(userId);
       } catch (error) {
         console.log('Warning: Could not clear cart:', error.message);
-        // Don't throw error here, order is already created
+        // Không throw error ở đây vì đơn hàng đã được tạo thành công
       }
 
       return savedOrder;
@@ -69,7 +80,6 @@ export class OrderService {
 
   async getOrderHistory(userId: string): Promise<Order[]> {
     return this.orderModel.find({ userId })
-      .populate('products.productId', 'id name price image')
       .sort({ createdAt: -1 })
       .exec();
   }
@@ -78,6 +88,18 @@ export class OrderService {
     return this.orderModel.findByIdAndUpdate(
       orderId,
       { status },
+      { new: true }
+    ).exec();
+  }
+
+  async getOrderById(orderId: string): Promise<Order | null> {
+    return this.orderModel.findById(orderId).exec();
+  }
+
+  async cancelOrder(orderId: string): Promise<Order> {
+    return this.orderModel.findByIdAndUpdate(
+      orderId,
+      { status: OrderStatus.CANCELLED },
       { new: true }
     ).exec();
   }

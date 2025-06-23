@@ -16,7 +16,7 @@ export class CreateOrderDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OrderItemDto)
-  products: OrderItemDto[]; // Changed from 'items' to 'products' to match frontend
+  products: OrderItemDto[];
 
   @IsNumber()
   totalAmount: number;
