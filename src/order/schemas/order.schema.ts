@@ -10,40 +10,48 @@ export enum OrderStatus {
   COMPLETED = 'completed',
 }
 
+export interface ProductOrderItem {
+  productId: Types.ObjectId;
+  quantity: number;
+  price: number;
+}
+
 @Schema({ timestamps: true })
 export class Order {
   @Prop({ type: Types.ObjectId, ref: UserAccount.name, required: true })
   userId: Types.ObjectId;
 
   @Prop({
-    type: [{
-      productId: { type: Types.ObjectId, ref: Product.name, required: true },
-      quantity: { type: Number, required: true },
-      price: { type: Number, required: true }
-    }],
-    required: true
+    type: [
+      {
+        productId: { type: Types.ObjectId, ref: Product.name, required: true },
+        quantity: { type: Number, required: true },
+        price: { type: Number, required: true },
+      },
+    ],
+    required: true,
+    _id: false
   })
-  items: { 
-    productId: Types.ObjectId; 
-    quantity: number; 
-    price: number 
-  }[];
+  products: ProductOrderItem[];
 
   @Prop({ type: Number, required: true })
   totalAmount: number;
 
-  @Prop({ 
-    type: String, 
-    enum: Object.values(OrderStatus), 
-    default: OrderStatus.PENDING 
+  @Prop({
+    type: String,
+    enum: Object.values(OrderStatus),
+    default: OrderStatus.PENDING,
   })
   status: OrderStatus;
 
   @Prop()
-  paymentMethod: string;
+  shippingAddress: string;
 
   @Prop()
-  shippingAddress: string;
+  phoneNumber: string;
+
+  @Prop()
+  notes: string;
 }
 
 export type OrderDocument = Order & Document;
